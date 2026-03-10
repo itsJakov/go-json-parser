@@ -37,12 +37,12 @@ func (p *Parser) peek() rune {
 	return *p.peeked
 }
 
-func (p *Parser) expect(expected rune) (rune, error) {
+func (p *Parser) expect(expected rune) error {
 	tok := p.advance()
 	if tok != expected {
-		return tok, fmt.Errorf("expected '%c', got '%c'", expected, tok)
+		return fmt.Errorf("expected '%c', got '%c'", expected, tok)
 	}
-	return tok, nil
+	return nil
 }
 
 func (p *Parser) parseValue() (any, error) {
@@ -65,8 +65,7 @@ func (p *Parser) parseValue() (any, error) {
 }
 
 func (p *Parser) parseBooleanOrNull() (any, error) {
-	_, err := p.expect(scanner.Ident)
-	if err != nil {
+	if err := p.expect(scanner.Ident); err != nil {
 		return nil, err
 	}
 
@@ -84,18 +83,19 @@ func (p *Parser) parseBooleanOrNull() (any, error) {
 }
 
 func (p *Parser) parseNumber() (int, error) {
-	_, err := p.expect(scanner.Int)
-	if err != nil {
+	if err := p.expect(scanner.Int); err != nil {
 		return 0, err
 	}
 
 	value, err := strconv.Atoi(p.scanner.TokenText())
+	if err != nil {
+		return 0, err
+	}
 	return value, nil
 }
 
 func (p *Parser) parseString() (string, error) {
-	_, err := p.expect(scanner.String)
-	if err != nil {
+	if err := p.expect(scanner.String); err != nil {
 		return "", err
 	}
 
@@ -107,8 +107,7 @@ func (p *Parser) parseString() (string, error) {
 }
 
 func (p *Parser) parseArray() ([]any, error) {
-	_, err := p.expect('[')
-	if err != nil {
+	if err := p.expect('['); err != nil {
 		return nil, err
 	}
 
@@ -130,16 +129,14 @@ func (p *Parser) parseArray() ([]any, error) {
 		}
 	}
 
-	_, err = p.expect(']')
-	if err != nil {
+	if err := p.expect(']'); err != nil {
 		return nil, err
 	}
 	return arr, nil
 }
 
 func (p *Parser) parseObject() (map[string]any, error) {
-	_, err := p.expect('{')
-	if err != nil {
+	if err := p.expect('{'); err != nil {
 		return nil, err
 	}
 
@@ -152,8 +149,7 @@ func (p *Parser) parseObject() (map[string]any, error) {
 				return nil, err
 			}
 
-			_, err = p.expect(':')
-			if err != nil {
+			if err := p.expect(':'); err != nil {
 				return nil, err
 			}
 
@@ -171,8 +167,7 @@ func (p *Parser) parseObject() (map[string]any, error) {
 			}
 		}
 	}
-	_, err = p.expect('}')
-	if err != nil {
+	if err := p.expect('}'); err != nil {
 		return nil, err
 	}
 
